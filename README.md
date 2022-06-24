@@ -1,6 +1,14 @@
-# Video Games EDA
-Exploratory data analysis (EDA) on video games (1995-2021), scraped by Deep Contractor on [Kaggle](https://www.kaggle.com/deepcontractor/top-video-games-19952021-metacritic) from [Metacritic](https://www.metacritic.com/browse/games/score/metascore/all/all/filtered?page=0).
+# Video Games Metacritic: Data Analysis
+## Description
+In this project, I analyse data of video games released from 1995 to 2021. 
 
-Python is used to load the data, and SQL is used to inspect, clean and discover insights.
+I used Python (`pandas`) to load the data into Jupyter Notebooks, and used SQL (`sqlite`) to inspect and clean the data, then query for insights. 
 
-![Metacritic](https://upload.wikimedia.org/wikipedia/commons/thumb/4/48/Metacritic_logo.svg/1280px-Metacritic_logo.svg.png)
+## How to Use the Project
+Please see the following steps:
+1. Fork this repository.
+2. Open the .ipynb file in Jupyter Notebooks, JupyterLab, or Visual Studio Code.
+3. Run all cells to see queried tables.
+
+## Credits
+The dataset was hosted on [Kaggle](https://www.kaggle.com/deepcontractor/top-video-games-19952021-metacritic), which was scraped then shared by Deep Contractor.
