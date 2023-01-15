@@ -24,10 +24,8 @@ actions = ActionChains(DRIVER)
 
 # get game title, platform, release date, summary ranked by user score, then ranked by metascore, and then do a full outer merge?
 def extract():
-    games = DRIVER.find_elements(By.XPATH, ".//*[@class='title']")
-    game_names = [
-        g.text for g in games if g.text
-    ]  # conditionally excludes blank strings, potentially due to "title" class being elsewhere on page
+    games = DRIVER.find_elements(By.XPATH, ".//*[@class='title']/h3")
+    game_names = [g.text for g in games]
     print(game_names)
     # print(g_name.split(".", maxsplit=1)[-1])
 
