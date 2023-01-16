@@ -38,6 +38,7 @@ def extract():
 
         attribs_dict[s] = []
         for p in range(0, int(last_page)):
+            # for p in [0]: # use for testing
             # skip reloading first page
             if p:
                 DRIVER.get(f"{url}/filtered?page={p}")
@@ -48,22 +49,28 @@ def extract():
             # create list of lists of scraped attributes for each row
             # set maxsplit=5 as there are 6 attributes (5 "slices") in each list
             attribs_on_page = [g.text.split("\n", maxsplit=5) for g in games]
-            attribs_dict[s].append(attribs_on_page)
+            attribs_dict[s] += attribs_on_page
+
+    DRIVER.close()
     return attribs_dict
 
 
-# DRIVER.get(
-#     "https://www.metacritic.com/browse/games/score/userscore/all/all/filtered?page=0"
-# )
-# DRIVER.get(
-#     "https://www.metacritic.com/browse/games/score/metascore/all/all/filtered?page=0"
-# )
-extract()
+def generate_dfs(attribs_dict):
+    dfs = {}
+    for k, v in attribs_dict.items():
+        dfs[k] = pd.DataFrame(
+            v,
+            columns=[
+                f"{k}_score",
+                f"{k}_rank",
+                "name",
+                "platform",
+                "release_date",
+                "summary",
+            ],
+        )
+    print(dfs["meta"].head())
 
-# def main():
-#     DRIVER.get("https://au.indeed.com/")
-#     DRIVER.close()
 
-
-# if __name__ == "__main__":
-#     main()
+if __name__ == "__main__":
+    generate_dfs(extract())
