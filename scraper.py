@@ -7,6 +7,7 @@ from selenium.webdriver.support.wait import WebDriverWait
 from selenium.webdriver.support import expected_conditions as EC
 from selenium.common.exceptions import NoSuchElementException, TimeoutException
 from webdriver_manager.chrome import ChromeDriverManager
+import lxml
 import pandas as pd
 
 
@@ -24,26 +25,19 @@ actions = ActionChains(DRIVER)
 
 # get game title, platform, release date, summary ranked by user score, then ranked by metascore, and then do a full outer merge?
 def extract():
-    # create lists of game listing attributes, whose index match up with the posting on the site
-    games = DRIVER.find_elements(By.XPATH, ".//*[@class='title']/h3")
-    platforms = DRIVER.find_elements(
-        By.XPATH, './/*[@class="platform"]/span[@class="data"]'
-    )
-    release_dates = DRIVER.find_elements(By.XPATH, './/*[@class="clamp-details"]/span')
-    summaries = DRIVER.find_elements(By.CLASS_NAME, "summary")
-    user_scores = DRIVER.find_elements(
-        By.XPATH, ".//*[@class='clamp-score-wrap']/*[@class='metascore_anchor']/div"
-    )
-    # meta_scores = DRIVER.find_elements(By.CLASS_NAME, "metascore_w large game mixed")
+    # extract all rows from table element, but ignore the table rows (<tr>) that are class="spacer", which are empty
+    games = DRIVER.find_elements(By.XPATH, ".//tr[not(@class='spacer')]")
+    # create list of lists of scraped attributes for each row
+    games_attribs_list = []
+    for g in games:
+        # set maxsplit=5 as there are 6 attributes (5 "slices") in each list
+        game_attribs = g.text.split("\n", maxsplit=5)
+        # remove 2nd elem which is the ranking
+        del game_attribs[1]
+        games_attribs_list.append(game_attribs)
 
-    # game_names = [g.text for g in games]
-    # print(game_names)
-
-    # games = DRIVER.find_elements(By.XPATH, ".//tr")
-    # for g in games:
-    #     name = g.find_element(By.XPATH, ".//*[@class='title']/h3").text
-    #     print(name)
-    #     platform = g.find_element(By.XPATH, './/*[@class="data"]').text
+    print(games_attribs_list[0])
+    # next step is convert to a dataframe as a list of list!
 
 
 DRIVER.get(
