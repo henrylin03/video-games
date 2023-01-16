@@ -23,26 +23,41 @@ def setup_chrome_driver():
 DRIVER = setup_chrome_driver()
 actions = ActionChains(DRIVER)
 
-# get game title, platform, release date, summary ranked by user score, then ranked by metascore, and then do a full outer merge?
+# as there is no list of games with attributes, across platforms, need to scrape all data by user-score, then meta-score
 def extract():
-    # extract all rows from table element, but ignore the table rows (<tr>) that are class="spacer", which are empty
-    games = DRIVER.find_elements(By.XPATH, ".//tr[not(@class='spacer')]")
-    # create list of lists of scraped attributes for each row
-    games_attribs_list = []
-    for g in games:
-        # set maxsplit=5 as there are 6 attributes (5 "slices") in each list
-        game_attribs = g.text.split("\n", maxsplit=5)
-        # remove 2nd elem which is the ranking
-        del game_attribs[1]
-        games_attribs_list.append(game_attribs)
+    # dictionary to hold the two different types of scores (key) and their games' attributes (value)
+    attribs_dict = {}
+    for s in ["user", "meta"]:
+        url = f"https://www.metacritic.com/browse/games/score/{s}score/all/all"
+        DRIVER.get(url)
 
-    print(games_attribs_list[0])
-    # next step is convert to a dataframe as a list of list!
+        # find count of last page of content - for metacritic.com, this number does not change as you click through the pages
+        last_page = DRIVER.find_element(
+            By.XPATH, ".//*[@class='page last_page']/*[@class='page_num']"
+        ).text
+
+        attribs_dict[s] = []
+        for p in range(0, int(last_page)):
+            # skip reloading first page
+            if p:
+                DRIVER.get(f"{url}/filtered?page={p}")
+
+            # extract all rows from table element, but ignore the table rows (<tr>) that are class="spacer", which are empty
+            games = DRIVER.find_elements(By.XPATH, ".//tr[not(@class='spacer')]")
+
+            # create list of lists of scraped attributes for each row
+            # set maxsplit=5 as there are 6 attributes (5 "slices") in each list
+            attribs_on_page = [g.text.split("\n", maxsplit=5) for g in games]
+            attribs_dict[s].append(attribs_on_page)
+    return attribs_dict
 
 
-DRIVER.get(
-    "https://www.metacritic.com/browse/games/score/userscore/all/all/filtered?page=0"
-)
+# DRIVER.get(
+#     "https://www.metacritic.com/browse/games/score/userscore/all/all/filtered?page=0"
+# )
+# DRIVER.get(
+#     "https://www.metacritic.com/browse/games/score/metascore/all/all/filtered?page=0"
+# )
 extract()
 
 # def main():
