@@ -24,7 +24,6 @@ actions = ActionChains(DRIVER)
 
 # get game title, platform, release date, summary ranked by user score, then ranked by metascore, and then do a full outer merge?
 def extract():
-
     # create lists of game listing attributes, whose index match up with the posting on the site
     games = DRIVER.find_elements(By.XPATH, ".//*[@class='title']/h3")
     platforms = DRIVER.find_elements(
@@ -32,11 +31,10 @@ def extract():
     )
     release_dates = DRIVER.find_elements(By.XPATH, './/*[@class="clamp-details"]/span')
     summaries = DRIVER.find_elements(By.CLASS_NAME, "summary")
-    metascores = DRIVER.find_elements(
+    user_scores = DRIVER.find_elements(
         By.XPATH, ".//*[@class='clamp-score-wrap']/*[@class='metascore_anchor']/div"
     )
-    for m in metascores:
-        print(m.text)
+    # meta_scores = DRIVER.find_elements(By.CLASS_NAME, "metascore_w large game mixed")
 
     # game_names = [g.text for g in games]
     # print(game_names)
