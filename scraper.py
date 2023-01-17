@@ -1,3 +1,4 @@
+import os
 from selenium import webdriver
 from selenium.webdriver.chrome.service import Service
 from selenium.webdriver.common.by import By
@@ -7,7 +8,6 @@ from selenium.webdriver.support.wait import WebDriverWait
 from selenium.webdriver.support import expected_conditions as EC
 from selenium.common.exceptions import NoSuchElementException, TimeoutException
 from webdriver_manager.chrome import ChromeDriverManager
-import lxml
 import pandas as pd
 
 
@@ -38,7 +38,6 @@ def extract():
 
         attribs_dict[s] = []
         for p in range(0, int(last_page)):
-            # for p in [0]: # use for testing
             # skip reloading first page
             if p:
                 DRIVER.get(f"{url}/filtered?page={p}")
@@ -69,8 +68,16 @@ def generate_dfs(attribs_dict):
                 "summary",
             ],
         )
-    print(dfs["meta"].head())
+    return dfs
+
+
+def output_csvs(dfs_dict):
+    for k, v in dfs_dict.items():
+        output_path = os.path.join("./input", f"{k}.csv")
+        v.to_csv(output_path, index=False)
+    return
 
 
 if __name__ == "__main__":
-    generate_dfs(extract())
+    dfs = generate_dfs(extract())
+    output_csvs(dfs)
