@@ -2,11 +2,16 @@ import os
 from selenium import webdriver
 from selenium.webdriver.chrome.service import Service
 from selenium.webdriver.common.by import By
+<<<<<<< HEAD
+from selenium.webdriver import ActionChains
+from selenium.webdriver.support import expected_conditions as EC
+=======
 from selenium.webdriver.common.keys import Keys
 from selenium.webdriver import ActionChains
 from selenium.webdriver.support.wait import WebDriverWait
 from selenium.webdriver.support import expected_conditions as EC
 from selenium.common.exceptions import NoSuchElementException, TimeoutException
+>>>>>>> main
 from webdriver_manager.chrome import ChromeDriverManager
 import pandas as pd
 
@@ -21,7 +26,10 @@ def setup_chrome_driver():
 
 
 DRIVER = setup_chrome_driver()
+<<<<<<< HEAD
+=======
 actions = ActionChains(DRIVER)
+>>>>>>> main
 
 # as there is no list of games with attributes, across platforms, need to scrape all data by user-score, then meta-score
 def extract():

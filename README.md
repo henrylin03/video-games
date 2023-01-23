@@ -1,14 +1,27 @@
-# Video Games Metacritic: Data Analysis
+# Video Games: Data Analysis
+
 ## Description
-In this project, I analyse data of video games released from 1995 to 2021. 
 
-I used Python (`pandas`) to load the data into Jupyter Notebooks, and used SQL (`sqlite`) to inspect and clean the data, then query for insights. 
+In this project, I analyse video games' review data from [Metacritic.com](https://www.metacritic.com).
 
-## How to Use the Project
-Please see the following steps:
-1. Fork this repository.
-2. Open the .ipynb file in Jupyter Notebooks, JupyterLab, or Visual Studio Code.
-3. Run all cells to see queried tables.
+<p align="center">
+    <img src="https://seekvectorlogo.com/wp-content/uploads/2020/06/metacritic-vector-logo.png" alt="" width="550">
+</p>
 
-## Credits
-The dataset was hosted on [Kaggle](https://www.kaggle.com/deepcontractor/top-video-games-19952021-metacritic), which was scraped then shared by Deep Contractor.
+The project is split into two parts:
+
+### Scraper
+
+The data is scraped from [Metacritic.com](https://www.metacritic.com) using the `scraper.py` script, which uses Selenium in Python.
+
+Due to some video games having Metascores but insufficient user reviews for a user score, and vice versa, the script requires scraping of both lists.
+
+### Analysis
+
+`analysis.ipynb` is a Jupyter Notebook where I perform cleaning of the data using Python's `pandas` library, and analysis using SQL (`sqlite3`).
+
+## Feedback
+
+Thank you for joining me on my journey to learn coding and data analysis!
+
+If you have any feedback or suggestions, please feel free to raise a [GitHub Issue](https://github.com/henrylin03/video-games/issues).
