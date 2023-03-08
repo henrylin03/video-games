@@ -19,6 +19,7 @@ def setup_chrome_driver():
 
 DRIVER = setup_chrome_driver()
 
+
 # as there is no list of games with attributes, across platforms, need to scrape all data by user-score, then meta-score
 def extract():
     # dictionary to hold the two different types of scores (key) and their games' attributes (value)
