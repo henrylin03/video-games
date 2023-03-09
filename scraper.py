@@ -1,5 +1,3 @@
-import os
-from time import strptime
 from selenium import webdriver
 from selenium.webdriver.chrome.service import Service
 from selenium.webdriver.common.by import By
@@ -18,29 +16,62 @@ def setup_chrome_driver():
     )
 
 
-def extract():
+def generate_df():
+    PLATFORMS = [
+        "ps",
+        "ps2",
+        "ps3",
+        "ps4",
+        "ps5",
+        "psp",
+        "xbox",
+        "xbox360",
+        "xboxone",
+        "xbox-series-x",
+        "n64",
+        "gamecube",
+        "switch",
+        "wii",
+        "wii-u",
+        "gba",
+        "ds",
+        "3ds",
+        "vita",
+        "ios",
+        "stadia",
+        "dreamcast",
+        "pc",
+    ]
+
+    games_list_of_dicts = []
+    for platform in PLATFORMS:
+        print(f"Scraping games from {platform}...", end=" ", flush=True)
+        games_on_platform = scrape(platform)
+        games_list_of_dicts.extend(games_on_platform)
+        print("Done!")
+    return pd.DataFrame(games_list_of_dicts)
+
+
+def scrape(platform):
     DRIVER = setup_chrome_driver()
 
     # scrape all games on all platforms by metascore, expanding and extracting user score in each ticket
-    URL_IOS = "https://www.metacritic.com/browse/games/score/metascore/all/ios/filtered?sort=desc&view=condensed"
-    open_page(URL_IOS, DRIVER)
+    url_platform = f"https://www.metacritic.com/browse/games/release-date/available/{platform}/name?view=condensed"
+    open_page(url_platform, DRIVER)
 
     last_page = DRIVER.find_element(
         By.XPATH, ".//*[@class='page last_page']/*[@class='page_num']"
     ).text
 
+    games_by_platform_list_of_dicts = []
     for page_no in range(int(last_page)):
         if page_no:  # page numbers on metacritic are zero-indexed
-            open_page(f"{URL_IOS}&page={page_no}", DRIVER)
-
-        # expand_buttons = DRIVER.find_elements(By.XPATH, ".//button[text()='Expand']")
-        # [btn.click() for btn in expand_buttons]
+            open_page(f"{url_platform}&page={page_no}", DRIVER)
 
         games_elems_on_page = DRIVER.find_elements(
             By.XPATH, ".//tr[@class='expand_collapse']"
         )
 
-        games_list = []
         for g in games_elems_on_page:
             expand_button = g.find_element(By.XPATH, ".//button[text()='Expand']")
             expand_button.click()
@@ -58,73 +89,20 @@ def extract():
                 By.XPATH, ".//*[@class='score']/*[@class='metascore_anchor']/div"
             ).text
             userscore = g.find_element(
-                By.XPATH, ".//*[@class='score title']/*[@class='metascore_anchor']/div"
+                By.XPATH,
+                ".//*[@class='score title']/*[@class='metascore_anchor']/div",
             ).text  # a bit confusing for Metacritic to call its user score elem's class "metascore_anchor" as well!
 
-            print(metascore, userscore)
-
-            # games_attribs = {"name": g.find_element(By.XPATH, ".//a/h3")}
-
-        #     cleaned_game_attribs_str = g.text.replace("\nUser Score", "").replace(
-        #         "\nCollpase", ""
-        #     )
-        #     cleaned_game_attribs_list = (
-        #         cleaned_game_attribs_str.split("\n", maxplit=2)
-        #         .rsplit("\n", maxplit=1)
-        #         .pop(1)
-        #     )
-
-        #     games_attribs_on_page.append(
-        #         g.text.replace("\nUser Score", "")
-        #         .replace("\nCollapse", "")
-        #         .split("\n", maxsplit=2)
-        #     )
-        # print(games_attribs_on_page)
-        # break
-
-        # games_elems_on_page = DRIVER.find_elements(
-        #     By.XPATH, ".//tr[not(@class='spacer')]"
-        # )
-        # games_attribs_on_page = [
-        #     g.text.replace("\nUser Score", "")
-        #     .replace("\nCollapse", "")
-        #     .split("\n", maxsplit=5)
-        #     for g in games_elems_on_page
-        # ]
-        # print(games_attribs_on_page)
-
-    # scrape all games on all platforms by userscore, but only if the game, platform, and release date information has not already been scraped previously
-
-
-# as there is no list of games with attributes, across platforms, need to scrape all data by user-score, then meta-score
-# def extract():
-#     # dictionary to hold the two different types of scores (key) and their games' attributes (value)
-#     attribs_dict = {}
-#     for s in ["user", "meta"]:
-#         url = f"https://www.metacritic.com/browse/games/score/{s}score/all/all"
-#         DRIVER.get(url)
-
-#         # find count of last page of content - for metacritic.com, this number does not change as you click through the pages
-#         last_page = DRIVER.find_element(
-#             By.XPATH, ".//*[@class='page last_page']/*[@class='page_num']"
-#         ).text
-
-#         attribs_dict[s] = []
-#         for p in range(0, int(last_page)):
-#             # skip reloading first page
-#             if p:
-#                 DRIVER.get(f"{url}/filtered?page={p}")
-
-#             # extract all rows from table element, but ignore the table rows (<tr>) that are class="spacer", which are empty
-#             games = DRIVER.find_elements(By.XPATH, ".//tr[not(@class='spacer')]")
-
-#             # create list of lists of scraped attributes for each row
-#             # set maxsplit=5 as there are 6 attributes (5 "slices") in each list
-#             attribs_on_page = [g.text.split("\n", maxsplit=5) for g in games]
-#             attribs_dict[s] += attribs_on_page
-
-#     DRIVER.close()
-#     return attribs_dict
+            games_attributes_dict = {
+                "name": name,
+                "platform": platform,
+                "release_date": release_date,
+                "summary": summary,
+                "metascore": metascore,
+                "userscore": userscore,
+            }
+            games_by_platform_list_of_dicts.append(games_attributes_dict)
+    return games_by_platform_list_of_dicts
 
 
 def open_page(url, webdriver_name):
@@ -132,31 +110,6 @@ def open_page(url, webdriver_name):
     return
 
 
-def generate_dfs(attribs_dict):
-    dfs = {}
-    for k, v in attribs_dict.items():
-        dfs[k] = pd.DataFrame(
-            v,
-            columns=[
-                f"{k}_score",
-                f"{k}_rank",
-                "name",
-                "platform",
-                "release_date",
-                "summary",
-            ],
-        )
-    return dfs
-
-
-def output_csvs(dfs_dict):
-    for k, v in dfs_dict.items():
-        output_path = os.path.join("./input", f"{k}.csv")
-        v.to_csv(output_path, index=False)
-    return
-
-
 if __name__ == "__main__":
-    # dfs = generate_dfs(extract())
-    extract()
-    # output_csvs(dfs)
+    res_df = generate_df()
+    res_df.to_csv(r"./input/input.csv", index=False)
