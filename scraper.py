@@ -46,7 +46,7 @@ def generate_df():
     for platform in PLATFORMS:
         games_on_platform = scrape(platform)
         games_list_of_dicts.extend(games_on_platform)
-    return pd.DataFrame(games_list_of_dicts)
+    return pd.DataFrame(games_list_of_dicts).sort_values("name")
 
 
 def scrape(platform):
