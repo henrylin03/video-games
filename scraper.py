@@ -44,6 +44,10 @@ def scrape(platform):
         expand_buttons = DRIVER.find_elements(By.XPATH, ".//button[text()='Expand']")
         [button.click() for button in expand_buttons]
 
+        # setting up bsd4
+        page_html = DRIVER.page_source
+        soup = BeautifulSoup(page_html, "html.parser")
+
         for g in games_elems_on_page:
             name = g.find_element(By.XPATH, ".//*[@class='title']/h3").text
             platform = g.find_element(
@@ -52,7 +56,6 @@ def scrape(platform):
             release_date = g.find_element(
                 By.XPATH, ".//*[@class='details']/span[not(@class)]"
             ).text
-            # release_date_formatted = strptime(release_date, "%B %d, %Y")
             summary = g.find_element(By.XPATH, ".//*[@class='summary']/p").text
             metascore = g.find_element(
                 By.XPATH, ".//*[@class='score']/*[@class='metascore_anchor']/div"
