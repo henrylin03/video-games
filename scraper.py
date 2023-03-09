@@ -45,10 +45,8 @@ def generate_df():
 
     games_list_of_dicts = []
     for platform in PLATFORMS:
-        print(f"Scraping games from {platform}...", end=" ", flush=True)
         games_on_platform = scrape(platform)
         games_list_of_dicts.extend(games_on_platform)
-        print("Done!")
     return pd.DataFrame(games_list_of_dicts)
 
 
