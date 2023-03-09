@@ -1,4 +1,4 @@
-import requests
+import re
 from bs4 import BeautifulSoup
 from selenium import webdriver
 from selenium.webdriver.chrome.service import Service
@@ -42,9 +42,6 @@ def scrape(platform):
         if page_no:  # page numbers on metacritic are zero-indexed
             DRIVER.get(f"{url_platform}&page={page_no}")
 
-        expand_buttons = DRIVER.find_elements(By.XPATH, ".//button[text()='Expand']")
-        # [button.click() for button in expand_buttons]
-
         page_html = DRIVER.page_source
         soup = BeautifulSoup(page_html, "html.parser")
 
@@ -52,22 +49,11 @@ def scrape(platform):
         for g in games_elems_on_page:
             game_name = g.find("a", class_="title").text.replace("\n", "")
             release_date = find_release_date(g)
-
-            print(release_date)
-            return
-
-        break
-        # release_date = g.find_element(
-        #     By.XPATH, ".//*[@class='details']/span[not(@class)]"
-        # ).text
-        # summary = g.find_element(By.XPATH, ".//*[@class='summary']/p").text
-        # metascore = g.find_element(
-        #     By.XPATH, ".//*[@class='score']/*[@class='metascore_anchor']/div"
-        # ).text
-        # userscore = g.find_element(
-        #     By.XPATH,
-        #     ".//*[@class='score title']/*[@class='metascore_anchor']/div",
-        # ).text  # a bit confusing for Metacritic to call its user score elem's class "metascore_anchor" as well!
+            summary = g.find("div", class_="summary").contents[1].text
+            metascore = g.find("div", class_=re.compile("^metascore_w large game")).text
+            userscore = g.find(
+                "div", class_=re.compile("^metascore_w user large game")
+            ).text
 
         # games_attributes_dict = {
         #     "name": game_name,
