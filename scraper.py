@@ -33,16 +33,18 @@ def extract():
             open_page(f"{URL_IOS}&page={page_no}", DRIVER)
 
         expand_buttons = DRIVER.find_elements(By.XPATH, ".//button[text()='Expand']")
-        for btn in expand_buttons:
-            btn.click()
+        [btn.click() for btn in expand_buttons]
 
         games_elems_on_page = DRIVER.find_elements(
             By.XPATH, ".//tr[not(@class='spacer')]"
         )
         games_attribs_on_page = [
-            g.text.replace("\nExpand", "").split("\n", maxsplit=5)
+            g.text.replace("\nUser Score", "")
+            .replace("\nCollapse", "")
+            .split("\n", maxsplit=5)
             for g in games_elems_on_page
         ]
+        print(games_attribs_on_page)
 
     # scrape all games on all platforms by userscore, but only if the game, platform, and release date information has not already been scraped previously
 
