@@ -1,3 +1,5 @@
+import requests
+from bs4 import BeautifulSoup
 from selenium import webdriver
 from selenium.webdriver.chrome.service import Service
 from selenium.webdriver.common.by import By
@@ -15,38 +17,9 @@ def setup_chrome_driver():
     )
 
 
-def generate_df():
-    PLATFORMS = [
-        "ps",
-        "ps2",
-        "ps3",
-        "ps4",
-        "ps5",
-        "psp",
-        "xbox",
-        "xbox360",
-        "xboxone",
-        "xbox-series-x",
-        "n64",
-        "gamecube",
-        "switch",
-        "wii",
-        "wii-u",
-        "gba",
-        "ds",
-        "3ds",
-        "vita",
-        "ios",
-        "stadia",
-        "dreamcast",
-        "pc",
-    ]
-
-    games_list_of_dicts = []
-    for platform in PLATFORMS:
-        games_on_platform = scrape(platform)
-        games_list_of_dicts.extend(games_on_platform)
-    return pd.DataFrame(games_list_of_dicts).sort_values("name")
+def open_page(url, webdriver_name):
+    webdriver_name.get(url)
+    return
 
 
 def scrape(platform):
@@ -55,7 +28,6 @@ def scrape(platform):
     # scrape all games on all platforms by metascore, expanding and extracting user score in each ticket
     url_platform = f"https://www.metacritic.com/browse/games/release-date/available/{platform}/name?view=condensed"
     open_page(url_platform, DRIVER)
-
     last_page = DRIVER.find_element(
         By.XPATH, ".//*[@class='page last_page']/*[@class='page_num']"
     ).text
@@ -69,10 +41,10 @@ def scrape(platform):
             By.XPATH, ".//tr[@class='expand_collapse']"
         )
 
-        for g in games_elems_on_page:
-            expand_button = g.find_element(By.XPATH, ".//button[text()='Expand']")
-            expand_button.click()
+        expand_buttons = DRIVER.find_elements(By.XPATH, ".//button[text()='Expand']")
+        [button.click() for button in expand_buttons]
 
+        for g in games_elems_on_page:
             name = g.find_element(By.XPATH, ".//*[@class='title']/h3").text
             platform = g.find_element(
                 By.XPATH, ".//*[@class='platform']/*[@class='data']"
@@ -102,11 +74,42 @@ def scrape(platform):
     return games_by_platform_list_of_dicts
 
 
-def open_page(url, webdriver_name):
-    webdriver_name.get(url)
-    return
+scrape("ios")
+
+# def generate_df():
+#     PLATFORMS = [
+#         "ps",
+#         "ps2",
+#         "ps3",
+#         "ps4",
+#         "ps5",
+#         "psp",
+#         "xbox",
+#         "xbox360",
+#         "xboxone",
+#         "xbox-series-x",
+#         "n64",
+#         "gamecube",
+#         "switch",
+#         "wii",
+#         "wii-u",
+#         "gba",
+#         "ds",
+#         "3ds",
+#         "vita",
+#         "ios",
+#         "stadia",
+#         "dreamcast",
+#         "pc",
+#     ]
+
+#     games_list_of_dicts = []
+#     for platform in PLATFORMS:
+#         games_on_platform = scrape(platform)
+#         games_list_of_dicts.extend(games_on_platform)
+#     return pd.DataFrame(games_list_of_dicts).sort_values("name")
 
 
-if __name__ == "__main__":
-    res_df = generate_df()
-    res_df.to_csv(r"./input/input.csv", index=False)
+# if __name__ == "__main__":
+#     res_df = generate_df()
+#     res_df.to_csv(r"./input/input.csv", index=False)
