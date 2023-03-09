@@ -1,4 +1,5 @@
 import os
+from time import strptime
 from selenium import webdriver
 from selenium.webdriver.chrome.service import Service
 from selenium.webdriver.common.by import By
@@ -19,7 +20,7 @@ def setup_chrome_driver():
 
 def extract():
     DRIVER = setup_chrome_driver()
-    ## TEST WITH IOS
+
     # scrape all games on all platforms by metascore, expanding and extracting user score in each ticket
     URL_IOS = "https://www.metacritic.com/browse/games/score/metascore/all/ios/filtered?sort=desc&view=condensed"
     open_page(URL_IOS, DRIVER)
@@ -32,19 +33,65 @@ def extract():
         if page_no:  # page numbers on metacritic are zero-indexed
             open_page(f"{URL_IOS}&page={page_no}", DRIVER)
 
-        expand_buttons = DRIVER.find_elements(By.XPATH, ".//button[text()='Expand']")
-        [btn.click() for btn in expand_buttons]
+        # expand_buttons = DRIVER.find_elements(By.XPATH, ".//button[text()='Expand']")
+        # [btn.click() for btn in expand_buttons]
 
         games_elems_on_page = DRIVER.find_elements(
-            By.XPATH, ".//tr[not(@class='spacer')]"
+            By.XPATH, ".//tr[@class='expand_collapse']"
         )
-        games_attribs_on_page = [
-            g.text.replace("\nUser Score", "")
-            .replace("\nCollapse", "")
-            .split("\n", maxsplit=5)
-            for g in games_elems_on_page
-        ]
-        print(games_attribs_on_page)
+
+        games_list = []
+        for g in games_elems_on_page:
+            expand_button = g.find_element(By.XPATH, ".//button[text()='Expand']")
+            expand_button.click()
+
+            name = g.find_element(By.XPATH, ".//*[@class='title']/h3").text
+            platform = g.find_element(
+                By.XPATH, ".//*[@class='platform']/*[@class='data']"
+            ).text
+            release_date = g.find_element(
+                By.XPATH, ".//*[@class='details']/span[not(@class)]"
+            ).text
+            # release_date_formatted = strptime(release_date, "%B %d, %Y")
+            summary = g.find_element(By.XPATH, ".//*[@class='summary']/p").text
+            metascore = g.find_element(
+                By.XPATH, ".//*[@class='score']/*[@class='metascore_anchor']/div"
+            ).text
+            userscore = g.find_element(
+                By.XPATH, ".//*[@class='score title']/*[@class='metascore_anchor']/div"
+            ).text  # a bit confusing for Metacritic to call its user score elem's class "metascore_anchor" as well!
+
+            print(metascore, userscore)
+
+            # games_attribs = {"name": g.find_element(By.XPATH, ".//a/h3")}
+
+        #     cleaned_game_attribs_str = g.text.replace("\nUser Score", "").replace(
+        #         "\nCollpase", ""
+        #     )
+        #     cleaned_game_attribs_list = (
+        #         cleaned_game_attribs_str.split("\n", maxplit=2)
+        #         .rsplit("\n", maxplit=1)
+        #         .pop(1)
+        #     )
+
+        #     games_attribs_on_page.append(
+        #         g.text.replace("\nUser Score", "")
+        #         .replace("\nCollapse", "")
+        #         .split("\n", maxsplit=2)
+        #     )
+        # print(games_attribs_on_page)
+        # break
+
+        # games_elems_on_page = DRIVER.find_elements(
+        #     By.XPATH, ".//tr[not(@class='spacer')]"
+        # )
+        # games_attribs_on_page = [
+        #     g.text.replace("\nUser Score", "")
+        #     .replace("\nCollapse", "")
+        #     .split("\n", maxsplit=5)
+        #     for g in games_elems_on_page
+        # ]
+        # print(games_attribs_on_page)
 
     # scrape all games on all platforms by userscore, but only if the game, platform, and release date information has not already been scraped previously
 
