@@ -55,55 +55,52 @@ def scrape(platform):
                 "div", class_=re.compile("^metascore_w user large game")
             ).text
 
-        # games_attributes_dict = {
-        #     "name": game_name,
-        #     "platform": platform_str,
-        #     "release_date": release_date,
-        #     "summary": summary,
-        #     "metascore": metascore,
-        #     "userscore": userscore,
-        # }
-        # games_by_platform_list_of_dicts.append(games_attributes_dict)
+        games_attributes_dict = {
+            "name": game_name,
+            "platform": platform_str,
+            "release_date": release_date,
+            "summary": summary,
+            "metascore": metascore,
+            "userscore": userscore,
+        }
+        games_by_platform_list_of_dicts.append(games_attributes_dict)
     return games_by_platform_list_of_dicts
 
 
-scrape("ios")
+def generate_df():
+    PLATFORMS = [
+        "ps",
+        "ps2",
+        "ps3",
+        "ps4",
+        "ps5",
+        "psp",
+        "xbox",
+        "xbox360",
+        "xboxone",
+        "xbox-series-x",
+        "n64",
+        "gamecube",
+        "switch",
+        "wii",
+        "wii-u",
+        "gba",
+        "ds",
+        "3ds",
+        "vita",
+        "ios",
+        "stadia",
+        "dreamcast",
+        "pc",
+    ]
+
+    games_list_of_dicts = []
+    for platform in PLATFORMS:
+        games_on_platform = scrape(platform)
+        games_list_of_dicts.extend(games_on_platform)
+    return pd.DataFrame(games_list_of_dicts).sort_values("name")
 
 
-# def generate_df():
-#     PLATFORMS = [
-#         "ps",
-#         "ps2",
-#         "ps3",
-#         "ps4",
-#         "ps5",
-#         "psp",
-#         "xbox",
-#         "xbox360",
-#         "xboxone",
-#         "xbox-series-x",
-#         "n64",
-#         "gamecube",
-#         "switch",
-#         "wii",
-#         "wii-u",
-#         "gba",
-#         "ds",
-#         "3ds",
-#         "vita",
-#         "ios",
-#         "stadia",
-#         "dreamcast",
-#         "pc",
-#     ]
-
-#     games_list_of_dicts = []
-#     for platform in PLATFORMS:
-#         games_on_platform = scrape(platform)
-#         games_list_of_dicts.extend(games_on_platform)
-#     return pd.DataFrame(games_list_of_dicts).sort_values("name")
-
-
-# if __name__ == "__main__":
-#     res_df = generate_df()
-#     res_df.to_csv(r"./input/input.csv", index=False)
+if __name__ == "__main__":
+    res_df = generate_df()
+    res_df.to_csv(r"./input/input.csv", index=False)
