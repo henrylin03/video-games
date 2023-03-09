@@ -22,15 +22,27 @@ def extract():
     ## TEST WITH IOS
     # scrape all games on all platforms by metascore, expanding and extracting user score in each ticket
     URL_IOS = "https://www.metacritic.com/browse/games/score/metascore/all/ios/filtered?sort=desc&view=condensed"
-    DRIVER.get(URL_IOS)
+    open_page(URL_IOS, DRIVER)
 
     last_page = DRIVER.find_element(
         By.XPATH, ".//*[@class='page last_page']/*[@class='page_num']"
     ).text
 
     for page_no in range(int(last_page)):
-        if page_no:
-            DRIVER.get(f"{URL_IOS}&page={page_no}")
+        if page_no:  # page numbers on metacritic are zero-indexed
+            open_page(f"{URL_IOS}&page={page_no}", DRIVER)
+
+        expand_buttons = DRIVER.find_elements(By.XPATH, ".//button[text()='Expand']")
+        for btn in expand_buttons:
+            btn.click()
+
+        games_elems_on_page = DRIVER.find_elements(
+            By.XPATH, ".//tr[not(@class='spacer')]"
+        )
+        games_attribs_on_page = [
+            g.text.replace("\nExpand", "").split("\n", maxsplit=5)
+            for g in games_elems_on_page
+        ]
 
     # scrape all games on all platforms by userscore, but only if the game, platform, and release date information has not already been scraped previously
 
@@ -64,6 +76,11 @@ def extract():
 
 #     DRIVER.close()
 #     return attribs_dict
+
+
+def open_page(url, webdriver_name):
+    webdriver_name.get(url)
+    return
 
 
 def generate_dfs(attribs_dict):
