@@ -32,6 +32,7 @@ def scrape(platform):
     platform_str = DRIVER.find_element(
         By.XPATH, ".//*[@class='platform']/*[@class='data']"
     ).text
+    print(f"\nScraping {platform_str} games...")
 
     last_page = DRIVER.find_element(
         By.XPATH, ".//*[@class='page last_page']/*[@class='page_num']"
@@ -64,6 +65,7 @@ def scrape(platform):
             "userscore": userscore,
         }
         games_by_platform_list_of_dicts.append(games_attributes_dict)
+        print(f"\t✅ Page {page_no + 1} of {last_page}")
     return games_by_platform_list_of_dicts
 
 
@@ -104,3 +106,4 @@ def generate_df():
 if __name__ == "__main__":
     res_df = generate_df()
     res_df.to_csv(r"./input/input.csv", index=False)
+    print("\n✅ CSV outputted")
