@@ -17,17 +17,22 @@ def setup_chrome_driver():
     )
 
 
-def open_page(url, webdriver_name):
-    webdriver_name.get(url)
-    return
+def find_release_date(game_elem):
+    nested_span_tags_without_class = game_elem.find_all("span", {"class": None})
+    if len(nested_span_tags_without_class) > 1:
+        raise Exception("More than one release date found for game.")
+    return nested_span_tags_without_class[0].text
 
 
 def scrape(platform):
     DRIVER = setup_chrome_driver()
-
-    # scrape all games on all platforms by metascore, expanding and extracting user score in each ticket
     url_platform = f"https://www.metacritic.com/browse/games/release-date/available/{platform}/name?view=condensed"
-    open_page(url_platform, DRIVER)
+    DRIVER.get(url_platform)
+
+    platform_str = DRIVER.find_element(
+        By.XPATH, ".//*[@class='platform']/*[@class='data']"
+    ).text
+
     last_page = DRIVER.find_element(
         By.XPATH, ".//*[@class='page last_page']/*[@class='page_num']"
     ).text
@@ -35,49 +40,49 @@ def scrape(platform):
     games_by_platform_list_of_dicts = []
     for page_no in range(int(last_page)):
         if page_no:  # page numbers on metacritic are zero-indexed
-            open_page(f"{url_platform}&page={page_no}", DRIVER)
-
-        games_elems_on_page = DRIVER.find_elements(
-            By.XPATH, ".//tr[@class='expand_collapse']"
-        )
+            DRIVER.get(f"{url_platform}&page={page_no}")
 
         expand_buttons = DRIVER.find_elements(By.XPATH, ".//button[text()='Expand']")
-        [button.click() for button in expand_buttons]
+        # [button.click() for button in expand_buttons]
 
-        # setting up bsd4
         page_html = DRIVER.page_source
         soup = BeautifulSoup(page_html, "html.parser")
 
+        games_elems_on_page = soup.find_all("tr", class_="expand_collapse")
         for g in games_elems_on_page:
-            name = g.find_element(By.XPATH, ".//*[@class='title']/h3").text
-            platform = g.find_element(
-                By.XPATH, ".//*[@class='platform']/*[@class='data']"
-            ).text
-            release_date = g.find_element(
-                By.XPATH, ".//*[@class='details']/span[not(@class)]"
-            ).text
-            summary = g.find_element(By.XPATH, ".//*[@class='summary']/p").text
-            metascore = g.find_element(
-                By.XPATH, ".//*[@class='score']/*[@class='metascore_anchor']/div"
-            ).text
-            userscore = g.find_element(
-                By.XPATH,
-                ".//*[@class='score title']/*[@class='metascore_anchor']/div",
-            ).text  # a bit confusing for Metacritic to call its user score elem's class "metascore_anchor" as well!
+            game_name = g.find("a", class_="title").text.replace("\n", "")
+            release_date = find_release_date(g)
 
-            games_attributes_dict = {
-                "name": name,
-                "platform": platform,
-                "release_date": release_date,
-                "summary": summary,
-                "metascore": metascore,
-                "userscore": userscore,
-            }
-            games_by_platform_list_of_dicts.append(games_attributes_dict)
+            print(release_date)
+            return
+
+        break
+        # release_date = g.find_element(
+        #     By.XPATH, ".//*[@class='details']/span[not(@class)]"
+        # ).text
+        # summary = g.find_element(By.XPATH, ".//*[@class='summary']/p").text
+        # metascore = g.find_element(
+        #     By.XPATH, ".//*[@class='score']/*[@class='metascore_anchor']/div"
+        # ).text
+        # userscore = g.find_element(
+        #     By.XPATH,
+        #     ".//*[@class='score title']/*[@class='metascore_anchor']/div",
+        # ).text  # a bit confusing for Metacritic to call its user score elem's class "metascore_anchor" as well!
+
+        # games_attributes_dict = {
+        #     "name": game_name,
+        #     "platform": platform_str,
+        #     "release_date": release_date,
+        #     "summary": summary,
+        #     "metascore": metascore,
+        #     "userscore": userscore,
+        # }
+        # games_by_platform_list_of_dicts.append(games_attributes_dict)
     return games_by_platform_list_of_dicts
 
 
 scrape("ios")
+
 
 # def generate_df():
 #     PLATFORMS = [
