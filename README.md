@@ -12,7 +12,7 @@ The project is split into two parts:
 
 ### Scraper
 
-The data is scraped from [Metacritic.com](https://www.metacritic.com) using the `scraper.py` script, which uses Selenium in Python.
+The data is scraped from [Metacritic.com](https://www.metacritic.com) using the `scraper.py` script, which uses Beautiful Soup in Python.
 
 Due to some video games having Metascores but insufficient user reviews for a user score, and vice versa, the script requires scraping of both lists.
 
