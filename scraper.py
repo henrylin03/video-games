@@ -6,13 +6,6 @@ from bs4 import BeautifulSoup
 import pandas as pd
 
 
-def find_release_date(game_elem):
-    nested_span_tags_without_class = game_elem.find_all("span", {"class": None})
-    if len(nested_span_tags_without_class) > 1:
-        raise Exception("More than one release date found for game.")
-    return nested_span_tags_without_class[0].text
-
-
 def create_beautifulsoup_object(url):
     s = requests.Session()
     s.headers[
@@ -21,6 +14,13 @@ def create_beautifulsoup_object(url):
     r = s.get(url)
     soup = BeautifulSoup(r.content, "lxml")
     return soup
+
+
+def find_release_date(game_elem):
+    nested_span_tags_without_class = game_elem.find_all("span", {"class": None})
+    if len(nested_span_tags_without_class) > 1:
+        raise Exception("More than one release date found for game.")
+    return nested_span_tags_without_class[0].text
 
 
 def scrape(platform):
@@ -97,8 +97,8 @@ def generate_and_output_df():
     for platform in PLATFORMS:
         games_on_platform = scrape(platform)
         games_list_of_dicts.extend(games_on_platform)
-        df = pd.DataFrame(games_list_of_dicts).sort_values("name")
-        df.to_csv(f"./input/{platform}.csv", index=False)
+    df = pd.DataFrame(games_list_of_dicts).sort_values("name")
+    df.to_csv(f"./input/games.csv", index=False)
     return
 
 
