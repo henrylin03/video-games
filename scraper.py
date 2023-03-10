@@ -1,6 +1,7 @@
 import re
 import sys
 import requests
+import lxml
 from bs4 import BeautifulSoup
 import pandas as pd
 
@@ -21,7 +22,7 @@ def scrape(platform):
     url_platform = f"https://www.metacritic.com/browse/games/release-date/available/{platform}/name?view=condensed"
 
     r_platform = s.get(url_platform)
-    soup_platform = BeautifulSoup(r_platform.content, "html.parser")
+    soup_platform = BeautifulSoup(r_platform.content, "lxml")
 
     platform_str = (
         soup_platform.find("span", class_="data").text.replace("\n", "").strip()
@@ -34,7 +35,7 @@ def scrape(platform):
     for page_no in range(int(last_page)):
         url_platform_page = f"{url_platform}&page={page_no}"
         r_page = s.get(url_platform_page)
-        soup_page = BeautifulSoup(r_page.content, "html.parser")
+        soup_page = BeautifulSoup(r_page.content, "lxml")
 
         games_elems_on_page = soup_page.find_all("tr", class_="expand_collapse")
         for g in games_elems_on_page:
