@@ -13,16 +13,19 @@ def find_release_date(game_elem):
     return nested_span_tags_without_class[0].text
 
 
-def scrape(platform):
+def create_beautifulsoup_object(url):
     s = requests.Session()
     s.headers[
         "User-Agent"
     ] = "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/110.0.0.0 Safari/537.36"
+    r = s.get(url)
+    soup = BeautifulSoup(r.content, "lxml")
+    return soup
 
+
+def scrape(platform):
     url_platform = f"https://www.metacritic.com/browse/games/release-date/available/{platform}/name?view=condensed"
-
-    r_platform = s.get(url_platform)
-    soup_platform = BeautifulSoup(r_platform.content, "lxml")
+    soup_platform = create_beautifulsoup_object(url_platform)
 
     platform_str = (
         soup_platform.find("span", class_="data").text.replace("\n", "").strip()
@@ -37,8 +40,7 @@ def scrape(platform):
     games_by_platform_list_of_dicts = []
     for page_no in range(int(last_page)):
         url_platform_page = f"{url_platform}&page={page_no}"
-        r_page = s.get(url_platform_page)
-        soup_page = BeautifulSoup(r_page.content, "lxml")
+        soup_page = create_beautifulsoup_object(url_platform_page)
 
         games_elems_on_page = soup_page.find_all("tr", class_="expand_collapse")
         for g in games_elems_on_page:
@@ -50,16 +52,17 @@ def scrape(platform):
                 "div", class_=re.compile("^metascore_w user large game")
             ).text
 
-        games_attributes_dict = {
-            "name": game_name,
-            "platform": platform_str,
-            "release_date": release_date,
-            "summary": summary,
-            "metascore": metascore,
-            "userscore": userscore,
-        }
-        games_by_platform_list_of_dicts.append(games_attributes_dict)
+            games_attributes_dict = {
+                "name": game_name,
+                "platform": platform_str,
+                "release_date": release_date,
+                "summary": summary,
+                "metascore": metascore,
+                "userscore": userscore,
+            }
+            games_by_platform_list_of_dicts.append(games_attributes_dict)
         print(f"\t✅ Page {page_no + 1} of {last_page}")
+    print(f"Total of {len(games_by_platform_list_of_dicts)} games scraped!")
     return games_by_platform_list_of_dicts
 
 
