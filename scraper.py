@@ -29,7 +29,10 @@ def scrape(platform):
     )
     print(f"\nScraping {platform_str} games...")
 
-    last_page = soup_platform.find("li", class_="page last_page").contents[-1].text
+    try:
+        last_page = soup_platform.find("li", class_="page last_page").contents[-1].text
+    except AttributeError:
+        last_page = 1
 
     games_by_platform_list_of_dicts = []
     for page_no in range(int(last_page)):
