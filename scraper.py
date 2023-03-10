@@ -66,7 +66,7 @@ def scrape(platform):
     return games_by_platform_list_of_dicts
 
 
-def generate_df():
+def generate_and_output_df():
     PLATFORMS = [
         "ps",
         "ps2",
@@ -97,10 +97,10 @@ def generate_df():
     for platform in PLATFORMS:
         games_on_platform = scrape(platform)
         games_list_of_dicts.extend(games_on_platform)
-    return pd.DataFrame(games_list_of_dicts).sort_values("name")
+        df = pd.DataFrame(games_list_of_dicts).sort_values("name")
+        df.to_csv(f"./input/{platform}.csv", index=False)
+    return
 
 
 if __name__ == "__main__":
-    res_df = generate_df()
-    res_df.to_csv(r"./input/input.csv", index=False)
-    print("\n✅ CSV outputted")
+    generate_and_output_df()
