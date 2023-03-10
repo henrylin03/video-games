@@ -1,20 +1,8 @@
 import re
+import sys
+import requests
 from bs4 import BeautifulSoup
-from selenium import webdriver
-from selenium.webdriver.chrome.service import Service
-from selenium.webdriver.common.by import By
-from selenium.webdriver.support import expected_conditions as EC
-from webdriver_manager.chrome import ChromeDriverManager
 import pandas as pd
-
-
-def setup_chrome_driver():
-    options = webdriver.ChromeOptions()
-    options.add_experimental_option("excludeSwitches", ["enable-logging"])
-    options.add_argument("--start-maximized")
-    return webdriver.Chrome(
-        options=options, service=Service(ChromeDriverManager().install())
-    )
 
 
 def find_release_date(game_elem):
@@ -25,28 +13,30 @@ def find_release_date(game_elem):
 
 
 def scrape(platform):
-    DRIVER = setup_chrome_driver()
-    url_platform = f"https://www.metacritic.com/browse/games/release-date/available/{platform}/name?view=condensed"
-    DRIVER.get(url_platform)
+    s = requests.Session()
+    s.headers[
+        "User-Agent"
+    ] = "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/110.0.0.0 Safari/537.36"
 
-    platform_str = DRIVER.find_element(
-        By.XPATH, ".//*[@class='platform']/*[@class='data']"
-    ).text
+    url_platform = f"https://www.metacritic.com/browse/games/release-date/available/{platform}/name?view=condensed"
+
+    r_platform = s.get(url_platform)
+    soup_platform = BeautifulSoup(r_platform.content, "html.parser")
+
+    platform_str = (
+        soup_platform.find("span", class_="data").text.replace("\n", "").strip()
+    )
     print(f"\nScraping {platform_str} games...")
 
-    last_page = DRIVER.find_element(
-        By.XPATH, ".//*[@class='page last_page']/*[@class='page_num']"
-    ).text
+    last_page = soup_platform.find("li", class_="page last_page").contents[-1].text
 
     games_by_platform_list_of_dicts = []
     for page_no in range(int(last_page)):
-        if page_no:  # page numbers on metacritic are zero-indexed
-            DRIVER.get(f"{url_platform}&page={page_no}")
+        url_platform_page = f"{url_platform}&page={page_no}"
+        r_page = s.get(url_platform_page)
+        soup_page = BeautifulSoup(r_page.content, "html.parser")
 
-        page_html = DRIVER.page_source
-        soup = BeautifulSoup(page_html, "html.parser")
-
-        games_elems_on_page = soup.find_all("tr", class_="expand_collapse")
+        games_elems_on_page = soup_page.find_all("tr", class_="expand_collapse")
         for g in games_elems_on_page:
             game_name = g.find("a", class_="title").text.replace("\n", "")
             release_date = find_release_date(g)
