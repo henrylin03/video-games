@@ -1,80 +1,106 @@
-import os
-from selenium import webdriver
-from selenium.webdriver.chrome.service import Service
-from selenium.webdriver.common.by import By
-from selenium.webdriver import ActionChains
-from selenium.webdriver.support import expected_conditions as EC
-from webdriver_manager.chrome import ChromeDriverManager
+import re
+import sys
+import requests
+import lxml
+from bs4 import BeautifulSoup
 import pandas as pd
 
 
-def setup_chrome_driver():
-    options = webdriver.ChromeOptions()
-    options.add_experimental_option("excludeSwitches", ["enable-logging"])
-    options.add_argument("--start-maximized")
-    return webdriver.Chrome(
-        options=options, service=Service(ChromeDriverManager().install())
+def create_beautifulsoup_object(url):
+    s = requests.Session()
+    s.headers[
+        "User-Agent"
+    ] = "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/110.0.0.0 Safari/537.36"
+    r = s.get(url)
+    soup = BeautifulSoup(r.content, "lxml")
+    return soup
+
+
+def find_release_date(game_elem):
+    nested_span_tags_without_class = game_elem.find_all("span", {"class": None})
+    if len(nested_span_tags_without_class) > 1:
+        raise Exception("More than one release date found for game.")
+    return nested_span_tags_without_class[0].text
+
+
+def scrape(platform):
+    url_platform = f"https://www.metacritic.com/browse/games/release-date/available/{platform}/name?view=condensed"
+    soup_platform = create_beautifulsoup_object(url_platform)
+
+    platform_str = (
+        soup_platform.find("span", class_="data").text.replace("\n", "").strip()
     )
+    print(f"\nScraping {platform_str} games...")
+
+    try:
+        last_page = soup_platform.find("li", class_="page last_page").contents[-1].text
+    except AttributeError:
+        last_page = 1
+
+    games_by_platform_list_of_dicts = []
+    for page_no in range(int(last_page)):
+        url_platform_page = f"{url_platform}&page={page_no}"
+        soup_page = create_beautifulsoup_object(url_platform_page)
+
+        games_elems_on_page = soup_page.find_all("tr", class_="expand_collapse")
+        for g in games_elems_on_page:
+            game_name = g.find("a", class_="title").text.replace("\n", "")
+            release_date = find_release_date(g)
+            summary = g.find("div", class_="summary").contents[1].text
+            metascore = g.find("div", class_=re.compile("^metascore_w large game")).text
+            userscore = g.find(
+                "div", class_=re.compile("^metascore_w user large game")
+            ).text
+
+            games_attributes_dict = {
+                "name": game_name,
+                "platform": platform_str,
+                "release_date": release_date,
+                "summary": summary,
+                "metascore": metascore,
+                "userscore": userscore,
+            }
+            games_by_platform_list_of_dicts.append(games_attributes_dict)
+        print(f"\t✅ Page {page_no + 1} of {last_page}")
+    print(f"Total of {len(games_by_platform_list_of_dicts)} games scraped!")
+    return games_by_platform_list_of_dicts
 
 
-DRIVER = setup_chrome_driver()
+def generate_and_output_df():
+    PLATFORMS = [
+        "ps",
+        "ps2",
+        "ps3",
+        "ps4",
+        "ps5",
+        "psp",
+        "xbox",
+        "xbox360",
+        "xboxone",
+        "xbox-series-x",
+        "n64",
+        "gamecube",
+        "switch",
+        "wii",
+        "wii-u",
+        "gba",
+        "ds",
+        "3ds",
+        "vita",
+        "ios",
+        "stadia",
+        "dreamcast",
+        "pc",
+    ]
 
-
-# as there is no list of games with attributes, across platforms, need to scrape all data by user-score, then meta-score
-def extract():
-    # dictionary to hold the two different types of scores (key) and their games' attributes (value)
-    attribs_dict = {}
-    for s in ["user", "meta"]:
-        url = f"https://www.metacritic.com/browse/games/score/{s}score/all/all"
-        DRIVER.get(url)
-
-        # find count of last page of content - for metacritic.com, this number does not change as you click through the pages
-        last_page = DRIVER.find_element(
-            By.XPATH, ".//*[@class='page last_page']/*[@class='page_num']"
-        ).text
-
-        attribs_dict[s] = []
-        for p in range(0, int(last_page)):
-            # skip reloading first page
-            if p:
-                DRIVER.get(f"{url}/filtered?page={p}")
-
-            # extract all rows from table element, but ignore the table rows (<tr>) that are class="spacer", which are empty
-            games = DRIVER.find_elements(By.XPATH, ".//tr[not(@class='spacer')]")
-
-            # create list of lists of scraped attributes for each row
-            # set maxsplit=5 as there are 6 attributes (5 "slices") in each list
-            attribs_on_page = [g.text.split("\n", maxsplit=5) for g in games]
-            attribs_dict[s] += attribs_on_page
-
-    DRIVER.close()
-    return attribs_dict
-
-
-def generate_dfs(attribs_dict):
-    dfs = {}
-    for k, v in attribs_dict.items():
-        dfs[k] = pd.DataFrame(
-            v,
-            columns=[
-                f"{k}_score",
-                f"{k}_rank",
-                "name",
-                "platform",
-                "release_date",
-                "summary",
-            ],
-        )
-    return dfs
-
-
-def output_csvs(dfs_dict):
-    for k, v in dfs_dict.items():
-        output_path = os.path.join("./input", f"{k}.csv")
-        v.to_csv(output_path, index=False)
+    games_list_of_dicts = []
+    for platform in PLATFORMS:
+        games_on_platform = scrape(platform)
+        games_list_of_dicts.extend(games_on_platform)
+    df = pd.DataFrame(games_list_of_dicts).sort_values("name")
+    df.to_csv(f"./input/games.csv", index=False)
     return
 
 
 if __name__ == "__main__":
-    dfs = generate_dfs(extract())
-    output_csvs(dfs)
+    generate_and_output_df()
