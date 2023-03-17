@@ -12,13 +12,13 @@ The project is split into two parts:
 
 ### Scraper
 
-The data is scraped from [Metacritic.com](https://www.metacritic.com) using the `scraper.py` script, which uses Beautiful Soup in Python.
+The data is scraped from [Metacritic.com](https://www.metacritic.com) using the `scraper.py` script, which uses `BeautifulSoup` in Python. For each of the platforms games can be released on, I rank all games by name, alphabetically, then scrape required attributes.
 
-Due to some video games having Metascores but insufficient user reviews for a user score, and vice versa, the script requires scraping of both lists.
+_NB: previously, I used `selenium` to complete the scraping. However, `BeautifulSoup` has approximately **halved** the time taken to scrape the required input data._
 
 ### Analysis
 
-`analysis.ipynb` is a Jupyter Notebook where I perform cleaning of the data using Python's `pandas` library, and analysis using SQL (`sqlite3`).
+`analysis.ipynb` is a Jupyter Notebook where I perform data using Python's `pandas` library, and analysis using SQL (`sqlite3`). There are also visualisations in Python's `seaborn` and `matplotlib` libraries.
 
 ## Feedback
 
