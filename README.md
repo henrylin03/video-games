@@ -1,7 +1,7 @@
 # Video Games: Data Analysis
 
 ## Description
-This personal project showcases my skills and experience in data scraping, data pipeline building, and analysis/visualization. In this project, I analyse video games' review data from [Metacritic.com](https://www.metacritic.com) using Python.
+This personal project showcases my skills and experience in data scraping, data pipeline building, and analysis/visualisation. In this project, I analyse video games' review data from [Metacritic.com](https://www.metacritic.com) using Python.
 
 In this project, I analyse video games' review data from [Metacritic.com](https://www.metacritic.com).
 
