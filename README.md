@@ -17,7 +17,7 @@ The project is split into two parts:
 I wrote a scraper using `BeautifulSoup` to extract data from [Metacritic.com](https://www.metacritic.com). For each of the gaming platforms, I rank all games by name, alphabetically, then scrape required attributes. This process has approximately halved the time taken to scrape the required input data, compared to using `selenium`.
 
 ### Data Analysis and Visualization
-I then perform data analysis and visualisation using SQL, and Python's `pandas`, `seaborn`, and `matplotlib` libraries. The analysis includes exploring the relationships between game scores and their respective platforms and release years. I also created several visualisations, such as bar charts, boxplots and scatterplots, to highlight insights.
+I then perform data analysis and visualisation using SQL (`sqlite3`), and Python's `pandas`, `seaborn`, and `matplotlib` libraries. The analysis includes exploring the relationships between game scores and their respective platforms and release years. I also created several visualisations, such as bar charts, boxplots and scatterplots, to highlight insights.
 
 ## Results
 Through this project, I was able to identify trends and patterns in the video game industry, such as the most popular gaming platforms, and the top-rated games in recent years. These insights can be useful for game developers, publishers, and other stakeholders in the industry.
